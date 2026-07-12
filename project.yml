@@ -32,3 +32,13 @@ schemes:
       config: Debug
     archive:
       config: Release
+  MorseTrainerApp-iOS:
+    build:
+      targets:
+        MorseTrainerApp_iOS: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+    archive:
+      config: Release
