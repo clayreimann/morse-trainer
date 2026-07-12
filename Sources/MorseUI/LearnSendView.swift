@@ -82,13 +82,22 @@ public struct LearnSendView: View {
             .font(Theme.codeFont)
             .frame(minHeight: 24)
 
-            if settings.timingGate != .off {
+            // Speed gauge (straight-key only): shows your smoothed sending speed
+            // relative to the target — left = slower, right = faster.
+            if settings.inputMode == .straightKey {
                 VStack(spacing: Theme.Spacing.xs) {
-                    Text("Timing").font(.caption2).foregroundStyle(.secondary)
+                    HStack {
+                        Text("slower").font(.caption2).foregroundStyle(.secondary)
+                        Spacer()
+                        Text(coordinator.estimatedWPMLabel)
+                            .font(.caption).monospacedDigit()
+                        Spacer()
+                        Text("faster").font(.caption2).foregroundStyle(.secondary)
+                    }
                     TimingMeter(position: coordinator.timingPosition)
                         .frame(height: 24)
-                        .padding(.horizontal)
                 }
+                .padding(.horizontal)
             }
 
             Button("Hear it") {
@@ -114,9 +123,10 @@ public struct LearnSendView: View {
                 }
             } else if coordinator.isWordComplete {
                 VStack(spacing: Theme.Spacing.sm) {
-                    Text("Nice — next word shortly…")
+                    Text("Nice — next word in \(coordinator.countdown)…")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
+                        .monospacedDigit()
                     Button("Next word now") {
                         coordinator.nextWord()
                     }
@@ -140,8 +150,8 @@ public struct LearnSendView: View {
 
 /// Owns the mutable keying/matching state for `LearnSendView`: wires a
 /// `KeyerEngine` (straight key) / direct symbol feed (paddle) into a
-/// `SenderEngine`, tracks per-letter hesitancy, auto-advances words, and lets
-/// the learner move between unlocked stages.
+/// `SenderEngine`, tracks per-letter hesitancy, estimates sending speed,
+/// auto-advances words, and lets the learner move between unlocked stages.
 @MainActor
 private final class SendCoordinator: ObservableObject, @unchecked Sendable {
     let progress: ProgressStore
@@ -149,8 +159,8 @@ private final class SendCoordinator: ObservableObject, @unchecked Sendable {
     let tone: ToneGenerator
     let settings: AppSettings
 
-    /// Delay before a completed word auto-advances to the next one.
-    private let autoAdvanceSeconds: Double = 5
+    /// Seconds a completed word waits before auto-advancing (counts down visibly).
+    private let autoAdvanceSeconds = 3
     /// Safety timeout after which stale miss feedback clears on its own.
     private let rejectionTimeoutSeconds: Double = 6
 
@@ -160,8 +170,11 @@ private final class SendCoordinator: ObservableObject, @unchecked Sendable {
     @Published private(set) var completedCount = 0
     @Published private(set) var isWordComplete = false
     @Published private(set) var stageComplete = false
+    @Published private(set) var countdown = 0
     @Published var errorFlash = false
     @Published var timingPosition: Double = 0
+    /// Smoothed estimate of the learner's actual sending speed (nil until they key).
+    @Published var estimatedWPM: Double?
     /// Elements keyed so far for the letter currently in progress (live feedback).
     @Published var keyedSoFar: [MorseSymbol] = []
     /// What was keyed when the last letter was rejected; persists until the next attempt.
@@ -174,6 +187,8 @@ private final class SendCoordinator: ObservableObject, @unchecked Sendable {
     private var letterStartAt = Date()
     private var firstKeyDownForLetter: Date?
     private var lastPressMs: Double?
+    /// Exponential moving average of the implied unit length (ms), across the session.
+    private var unitEMA: Double?
     private var settleGeneration = 0
     private var errorFlashGeneration = 0
     private var rejectGeneration = 0
@@ -187,6 +202,11 @@ private final class SendCoordinator: ObservableObject, @unchecked Sendable {
     private var maxSelectableStage: Int { min(totalStages - 1, progress.highestUnlockedStage) }
     var canGoPrevious: Bool { currentStageIndex > 0 }
     var canGoNext: Bool { currentStageIndex < maxSelectableStage }
+
+    var estimatedWPMLabel: String {
+        guard let wpm = estimatedWPM else { return "≈ — WPM" }
+        return "≈ \(Int(wpm.rounded())) WPM"
+    }
 
     var hintForCurrent: [MorseSymbol]? {
         guard currentIndex < word.count else { return nil }
@@ -250,7 +270,7 @@ private final class SendCoordinator: ObservableObject, @unchecked Sendable {
         case .element(let sym):
             keyedSoFar.append(sym)
             sender.consumeTimed(.element(sym), pressMs: lastPressMs)
-            updateTimingMeter(sym: sym, pressMs: lastPressMs)
+            recordSpeed(sym: sym, pressMs: lastPressMs)
         case .letterBreak, .wordBreak:
             sender.consumeTimed(event, pressMs: nil)
         }
@@ -302,12 +322,26 @@ private final class SendCoordinator: ObservableObject, @unchecked Sendable {
             stageComplete = true
             progress.completeStage(currentStageIndex)
         } else {
-            // Auto-advance to the next word after a brief pause.
-            autoAdvanceGeneration += 1
-            let gen = autoAdvanceGeneration
-            DispatchQueue.main.asyncAfter(deadline: .now() + autoAdvanceSeconds) { [weak self] in
-                guard let self, self.autoAdvanceGeneration == gen else { return }
+            startAutoAdvance()
+        }
+    }
+
+    /// Counts down `autoAdvanceSeconds` (visible in the label), then advances.
+    private func startAutoAdvance() {
+        autoAdvanceGeneration += 1
+        let gen = autoAdvanceGeneration
+        countdown = autoAdvanceSeconds
+        tickAutoAdvance(gen: gen)
+    }
+
+    private func tickAutoAdvance(gen: Int) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
+            guard let self, self.autoAdvanceGeneration == gen else { return }
+            self.countdown -= 1
+            if self.countdown <= 0 {
                 self.nextWord()
+            } else {
+                self.tickAutoAdvance(gen: gen)
             }
         }
     }
@@ -366,13 +400,13 @@ private final class SendCoordinator: ObservableObject, @unchecked Sendable {
     func symbolPressed(_ sym: MorseSymbol) {
         // Paddle mode: KeyButton already classifies the element, so feed the
         // sender directly (no raw press duration to measure) and rely on the
-        // settle debounce below to close the letter after a pause.
+        // settle debounce below to close the letter after a pause. No speed
+        // estimate here — there's no real press duration.
         clearRejectionForNewAttempt()
         if firstKeyDownForLetter == nil { firstKeyDownForLetter = Date() }
         let ideal = (sym == .dot ? 1.0 : 3.0) * unitMs
         keyedSoFar.append(sym)
         sender.consumeTimed(.element(sym), pressMs: ideal)
-        updateTimingMeter(sym: sym, pressMs: ideal)
         resetSettleDebounce()
     }
 
@@ -393,11 +427,20 @@ private final class SendCoordinator: ObservableObject, @unchecked Sendable {
         }
     }
 
-    private func updateTimingMeter(sym: MorseSymbol, pressMs: Double?) {
-        guard let pressMs else { return }
-        let ideal = (sym == .dot ? 1.0 : 3.0) * unitMs
-        guard ideal > 0 else { return }
-        timingPosition = max(-1, min(1, (pressMs - ideal) / ideal))
+    /// Updates the smoothed sending-speed estimate and the gauge position from a
+    /// real straight-key press. Each element implies a unit length: a dot is one
+    /// unit, a dash is three. We EMA the implied unit and derive WPM = 1200/unit.
+    private func recordSpeed(sym: MorseSymbol, pressMs: Double?) {
+        guard let pressMs, pressMs > 0 else { return }
+        let impliedUnit = sym == .dot ? pressMs : pressMs / 3
+        let alpha = 0.4
+        unitEMA = unitEMA.map { alpha * impliedUnit + (1 - alpha) * $0 } ?? impliedUnit
+        guard let u = unitEMA, u > 0 else { return }
+        let wpm = 1200 / u
+        estimatedWPM = wpm
+        let target = settings.charWPM
+        guard target > 0 else { return }
+        timingPosition = max(-1, min(1, (wpm - target) / target))
     }
 }
 
