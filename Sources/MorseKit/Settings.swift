@@ -12,6 +12,11 @@ public struct AppSettings: Equatable, Sendable {
     public var timingGate: TimingGate = .off
     public var gateGracePercent: Double = 25
     public var difficulty: Difficulty = .easy
+    /// macOS: send with the physical keyboard (space = straight key; the paddle
+    /// keys below for dot/dash). Ignored on platforms without a hardware keyboard.
+    public var keyboardSendingEnabled: Bool = true
+    public var paddleDotKey: String = "z"
+    public var paddleDashKey: String = "x"
     public init() {}
     public var timing: TimingSettings {
         TimingSettings(charWPM: charWPM, effectiveWPM: effectiveWPM, wordSpacing: wordSpacing)

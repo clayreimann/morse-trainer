@@ -145,6 +145,21 @@ public struct LearnSendView: View {
             }
         }
         .padding()
+        .background {
+            // macOS keyboard sending: space = straight key, configured pair = paddle.
+            // (No-op on platforms without a hardware keyboard.)
+            if settings.keyboardSendingEnabled {
+                KeyCaptureView(
+                    inputMode: settings.inputMode,
+                    dotKey: settings.paddleDotKey.first ?? "z",
+                    dashKey: settings.paddleDashKey.first ?? "x",
+                    onDown: { coordinator.keyDown() },
+                    onUp: { coordinator.keyUp() },
+                    onDot: { coordinator.symbolPressed(.dot) },
+                    onDash: { coordinator.symbolPressed(.dash) }
+                )
+            }
+        }
     }
 }
 

@@ -12,6 +12,9 @@ final class SettingsTests: XCTestCase {
         XCTAssertEqual(s.inputMode, .straightKey)
         XCTAssertEqual(s.timingGate, .off)
         XCTAssertEqual(s.difficulty, .easy)
+        XCTAssertTrue(s.keyboardSendingEnabled)
+        XCTAssertEqual(s.paddleDotKey, "z")
+        XCTAssertEqual(s.paddleDashKey, "x")
     }
     func testTimingSettingsProjection() {
         var s = AppSettings(); s.charWPM = 20; s.effectiveWPM = 10; s.wordSpacing = 1.5

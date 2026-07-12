@@ -22,6 +22,9 @@ public final class SettingsStore: ObservableObject {
     @AppStorage("morse.timingGate") private var storedTimingGateRaw: String = TimingGate.off.rawValue
     @AppStorage("morse.gateGracePercent") private var storedGateGracePercent: Double = 25
     @AppStorage("morse.difficulty") private var storedDifficultyRaw: String = Difficulty.easy.rawValue
+    @AppStorage("morse.keyboardSendingEnabled") private var storedKeyboardSendingEnabled: Bool = true
+    @AppStorage("morse.paddleDotKey") private var storedPaddleDotKey: String = "z"
+    @AppStorage("morse.paddleDashKey") private var storedPaddleDashKey: String = "x"
 
     public init() {}
 
@@ -78,6 +81,27 @@ public final class SettingsStore: ObservableObject {
         set { objectWillChange.send(); storedDifficultyRaw = newValue.rawValue }
     }
 
+    public var keyboardSendingEnabled: Bool {
+        get { storedKeyboardSendingEnabled }
+        set { objectWillChange.send(); storedKeyboardSendingEnabled = newValue }
+    }
+
+    /// Normalizes to a single lowercased character (falls back to a default if empty).
+    public var paddleDotKey: String {
+        get { storedPaddleDotKey }
+        set { objectWillChange.send(); storedPaddleDotKey = Self.normalizeKey(newValue, fallback: "z") }
+    }
+
+    public var paddleDashKey: String {
+        get { storedPaddleDashKey }
+        set { objectWillChange.send(); storedPaddleDashKey = Self.normalizeKey(newValue, fallback: "x") }
+    }
+
+    private static func normalizeKey(_ value: String, fallback: String) -> String {
+        guard let ch = value.last else { return fallback }
+        return String(ch).lowercased()
+    }
+
     /// A plain, UI-framework-independent snapshot of the current settings —
     /// this is what `RootView` threads down into the practice screens.
     public var settings: AppSettings {
@@ -91,6 +115,9 @@ public final class SettingsStore: ObservableObject {
         s.timingGate = timingGate
         s.gateGracePercent = gateGracePercent
         s.difficulty = difficulty
+        s.keyboardSendingEnabled = keyboardSendingEnabled
+        s.paddleDotKey = paddleDotKey
+        s.paddleDashKey = paddleDashKey
         return s
     }
 }
@@ -136,6 +163,25 @@ public struct SettingsView: View {
                 }
             }
 
+            #if os(macOS)
+            Section("Keyboard (Mac)") {
+                Toggle("Send with keyboard", isOn: $store.keyboardSendingEnabled)
+                if store.keyboardSendingEnabled {
+                    LabeledContent("Straight key", value: "Space bar")
+                    HStack {
+                        Text("Paddle dot key")
+                        Spacer()
+                        SingleKeyField(text: $store.paddleDotKey)
+                    }
+                    HStack {
+                        Text("Paddle dash key")
+                        Spacer()
+                        SingleKeyField(text: $store.paddleDashKey)
+                    }
+                }
+            }
+            #endif
+
             Section("Timing gate") {
                 Picker("Gate", selection: $store.timingGate) {
                     Text("Off").tag(TimingGate.off)
@@ -161,6 +207,25 @@ public struct SettingsView: View {
         .navigationTitle("Settings")
     }
 }
+
+#if os(macOS)
+/// A one-character text field for binding a paddle key. Keeps only the last
+/// character typed (lowercased) so the field always holds a single key.
+private struct SingleKeyField: View {
+    @Binding var text: String
+    var body: some View {
+        TextField("", text: Binding(
+            get: { text },
+            set: { newValue in
+                if let ch = newValue.last { text = String(ch).lowercased() }
+            }
+        ))
+        .frame(width: 44)
+        .multilineTextAlignment(.center)
+        .textFieldStyle(.roundedBorder)
+    }
+}
+#endif
 
 #Preview("Settings") {
     SettingsView(store: SettingsStore())
