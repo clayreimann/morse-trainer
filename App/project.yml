@@ -1,0 +1,21 @@
+name: MorseTrainerApp
+options:
+  bundleIdPrefix: com.morsetrainer
+  deploymentTarget:
+    macOS: "14.0"
+    iOS: "17.0"
+packages:
+  MorseTrainer:
+    path: ..
+targets:
+  MorseTrainerApp:
+    type: application
+    platform: [macOS, iOS]
+    sources: [.]
+    dependencies:
+      - package: MorseTrainer
+        product: MorseUI
+    settings:
+      base:
+        INFOPLIST_FILE: App/Info.plist
+        GENERATE_INFOPLIST_FILE: YES
