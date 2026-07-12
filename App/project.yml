@@ -17,5 +17,18 @@ targets:
         product: MorseUI
     settings:
       base:
-        INFOPLIST_FILE: App/Info.plist
         GENERATE_INFOPLIST_FILE: YES
+        PRODUCT_BUNDLE_IDENTIFIER: com.morsetrainer.app
+        MARKETING_VERSION: "1.0"
+        CURRENT_PROJECT_VERSION: "1"
+schemes:
+  MorseTrainerApp:
+    build:
+      targets:
+        MorseTrainerApp_macOS: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+    archive:
+      config: Release
