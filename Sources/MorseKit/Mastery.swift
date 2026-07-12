@@ -24,3 +24,9 @@ public enum MasteryPolicy {
         s.confidence >= hintSuppressThreshold
     }
 }
+
+extension LetterStat {
+    public func rehydrated(attempts: Int, correct: Int, hesitancyEMA: Double) -> LetterStat {
+        var s = self; s.attempts = attempts; s.correct = correct; s.hesitancyEMA = hesitancyEMA; return s
+    }
+}
