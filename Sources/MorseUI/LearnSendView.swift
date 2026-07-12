@@ -189,6 +189,10 @@ private final class SendCoordinator: ObservableObject, @unchecked Sendable {
     }
 
     private func handleError(_ idx: Int) {
+        if idx < word.count {
+            let hesitancy = (firstKeyDownForLetter ?? Date()).timeIntervalSince(letterStartAt) * 1000
+            progress.record(letter: String(word[idx]), correct: false, hesitancyMs: hesitancy)
+        }
         errorFlash = true
         errorFlashGeneration += 1
         let gen = errorFlashGeneration
