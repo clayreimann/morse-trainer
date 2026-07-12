@@ -6,12 +6,12 @@ options:
     iOS: "17.0"
 packages:
   MorseTrainer:
-    path: ..
+    path: .
 targets:
   MorseTrainerApp:
     type: application
     platform: [macOS, iOS]
-    sources: [.]
+    sources: [App/MorseTrainerApp.swift]
     dependencies:
       - package: MorseTrainer
         product: MorseUI
