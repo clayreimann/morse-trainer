@@ -25,4 +25,29 @@ final class SenderEngineTests: XCTestCase {
         e.consume(.letterBreak)
         XCTAssertEqual(e.completedCount, 0) // pattern ok but timing gate fails
     }
+
+    // Guided completion: the target is known, so a multi-element letter must
+    // complete as soon as its expected number of elements are keyed — WITHOUT
+    // needing a timing-driven letter break (humans can't hit inter-element
+    // timing at speed). Reproduces the "can't send A (·−)" bug.
+    func testMultiElementLetterCompletesByCount() {
+        let e = makeEngine("A")                 // A = ·−
+        e.consume(.element(.dot))
+        XCTAssertEqual(e.completedCount, 0)     // only 1 of 2 elements so far
+        XCTAssertFalse(e.lastLetterWasError)    // not rejected mid-letter
+        e.consume(.element(.dash))              // no letterBreak needed
+        XCTAssertTrue(e.isComplete)
+    }
+
+    // A premature letter break (from a natural pause between the dot and dash)
+    // must NOT reject a letter the learner is still keying.
+    func testPrematureLetterBreakDoesNotRejectPartialLetter() {
+        let e = makeEngine("A")                 // A = ·−
+        e.consume(.element(.dot))
+        e.consume(.letterBreak)                 // spurious break during the pause
+        XCTAssertFalse(e.lastLetterWasError)    // ignored, still waiting for the dash
+        XCTAssertEqual(e.completedCount, 0)
+        e.consume(.element(.dash))              // dash arrives → completes A
+        XCTAssertTrue(e.isComplete)
+    }
 }

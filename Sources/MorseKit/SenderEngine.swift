@@ -23,10 +23,23 @@ public final class SenderEngine: @unchecked Sendable {
     public func consumeTimed(_ e: KeyerEvent, pressMs: Double?) {
         switch e {
         case .element(let sym):
+            guard currentIndex < expected.count else { return }
             buffer.append(sym)
             if let p = pressMs { pressTimings.append(p) }
+            // Guided completion: the target word is known, so a letter is
+            // finished once the learner has keyed the expected number of
+            // elements. Boundaries come from element COUNT, not inter-element
+            // timing — humans (especially learners) can't hit sub-unit gaps at
+            // speed, so relying on timing breaks would reject multi-element
+            // letters like "A" (·−) after the first element.
+            let need = expected[currentIndex].count
+            if need > 0 && buffer.count >= need { evaluateLetter() }
         case .letterBreak, .wordBreak:
-            evaluateLetter()
+            // A timing-driven break must not reject a letter still being keyed.
+            // Count-based completion above already closes finished letters, so
+            // a break arriving mid-character (from a natural inter-element
+            // pause) is ignored rather than evaluating a partial buffer.
+            break
         }
     }
     private func evaluateLetter() {
