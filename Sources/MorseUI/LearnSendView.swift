@@ -153,12 +153,16 @@ public struct LearnSendView: View {
                     inputMode: settings.inputMode,
                     dotKey: settings.paddleDotKey.first ?? "z",
                     dashKey: settings.paddleDashKey.first ?? "x",
-                    onDown: { coordinator.keyDown() },
-                    onUp: { coordinator.keyUp() },
-                    onDot: { coordinator.symbolPressed(.dot) },
-                    onDash: { coordinator.symbolPressed(.dash) }
+                    onDown: { coordinator.keyboardDown() },
+                    onUp: { coordinator.keyboardUp() },
+                    onDot: { coordinator.keyboardSymbol(.dot) },
+                    onDash: { coordinator.keyboardSymbol(.dash) }
                 )
             }
+        }
+        .onAppear { coordinator.tone.frequency = settings.frequencyHz }
+        .onChange(of: settings.frequencyHz) { _, newValue in
+            coordinator.tone.frequency = newValue
         }
     }
 }
@@ -423,6 +427,53 @@ private final class SendCoordinator: ObservableObject, @unchecked Sendable {
         keyedSoFar.append(sym)
         sender.consumeTimed(.element(sym), pressMs: ideal)
         resetSettleDebounce()
+    }
+
+    // MARK: - Keyboard input (macOS)
+    //
+    // The on-screen `KeyButton` owns its own sidetone gating; the keyboard has
+    // no button, so these mirror the touch handlers AND drive the sidetone.
+
+    func keyboardDown() {
+        startSidetone()
+        keyDown()
+    }
+
+    func keyboardUp() {
+        keyUp()
+        stopSidetone()
+    }
+
+    func keyboardSymbol(_ sym: MorseSymbol) {
+        symbolPressed(sym)
+        beepElement(sym)
+    }
+
+    private func startSidetone() {
+        guard settings.keySound else { return }
+        tone.frequency = settings.frequencyHz
+        tone.gate(true)
+    }
+
+    private func stopSidetone() {
+        guard settings.keySound else { return }
+        tone.gate(false)
+    }
+
+    /// A momentary keyboard paddle press has no held duration, so sound the
+    /// element for its ideal length (dot = 1 unit, dash = 3).
+    private var beepGeneration = 0
+    private func beepElement(_ sym: MorseSymbol) {
+        guard settings.keySound else { return }
+        tone.frequency = settings.frequencyHz
+        tone.gate(true)
+        beepGeneration += 1
+        let gen = beepGeneration
+        let ms = (sym == .dot ? 1.0 : 3.0) * unitMs
+        DispatchQueue.main.asyncAfter(deadline: .now() + ms / 1000) { [weak self] in
+            guard let self, self.beepGeneration == gen else { return }
+            self.tone.gate(false)
+        }
     }
 
     /// After a pause with no new key activity, close out the current letter

@@ -39,7 +39,24 @@ public final class ToneGenerator: @unchecked Sendable {
         engine.attach(node)
         engine.connect(node, to: engine.mainMixerNode, format: nil)
     }
-    public func start() { try? engine.start() }
+    public func start() {
+        #if os(iOS)
+        // A hardware keyboard/touch app needs an active playback session or the
+        // engine produces no audible output.
+        let session = AVAudioSession.sharedInstance()
+        try? session.setCategory(.playback, mode: .default)
+        try? session.setActive(true)
+        #endif
+        if !engine.isRunning { try? engine.start() }
+    }
     public func stop() { engine.stop() }
-    public func gate(_ on: Bool) { if on { gateSample = 0 }; gateOn = on }
+    /// Turns the tone on/off. Starting the engine lazily here means the sidetone
+    /// works on the very first key press, without requiring a prior playback.
+    public func gate(_ on: Bool) {
+        if on {
+            if !engine.isRunning { start() }
+            gateSample = 0
+        }
+        gateOn = on
+    }
 }
