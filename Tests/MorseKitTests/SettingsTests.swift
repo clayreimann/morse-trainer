@@ -17,4 +17,11 @@ final class SettingsTests: XCTestCase {
         var s = AppSettings(); s.charWPM = 20; s.effectiveWPM = 10; s.wordSpacing = 1.5
         XCTAssertEqual(s.timing, TimingSettings(charWPM: 20, effectiveWPM: 10, wordSpacing: 1.5))
     }
+    func testClampedEffectiveWPM() {
+        // Effective WPM above charWPM is clamped down to charWPM...
+        XCTAssertEqual(AppSettings.clampedEffectiveWPM(30, charWPM: 20), 20)
+        // ...but a value already at or below charWPM passes through unchanged.
+        XCTAssertEqual(AppSettings.clampedEffectiveWPM(15, charWPM: 20), 15)
+        XCTAssertEqual(AppSettings.clampedEffectiveWPM(20, charWPM: 20), 20)
+    }
 }

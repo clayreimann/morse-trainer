@@ -16,4 +16,10 @@ public struct AppSettings: Equatable, Sendable {
     public var timing: TimingSettings {
         TimingSettings(charWPM: charWPM, effectiveWPM: effectiveWPM, wordSpacing: wordSpacing)
     }
+
+    /// Farnsworth effective WPM can never exceed the character-sending WPM
+    /// (that would mean "spacing out characters faster than they're sent").
+    public static func clampedEffectiveWPM(_ effective: Double, charWPM: Double) -> Double {
+        min(effective, charWPM)
+    }
 }
