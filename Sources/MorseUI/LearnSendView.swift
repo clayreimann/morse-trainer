@@ -47,10 +47,34 @@ public struct LearnSendView: View {
             )
             .animation(.easeInOut(duration: 0.2), value: coordinator.errorFlash)
 
-            TimingMeter(position: coordinator.timingPosition)
-                .frame(height: 30)
-                .padding(.horizontal)
-                .opacity(settings.timingGate == .off ? 0.4 : 1)
+            // Live feedback: what you've keyed for the current letter, or —
+            // on a miss — what you sent versus the target.
+            Group {
+                if coordinator.errorFlash, let rej = coordinator.rejected {
+                    HStack(spacing: Theme.Spacing.md) {
+                        Text("You sent \(rej.isEmpty ? "—" : Theme.codeString(for: rej))")
+                            .foregroundStyle(.red)
+                        Text("Target \(Theme.codeString(for: coordinator.expectedCode))")
+                            .foregroundStyle(.secondary)
+                    }
+                } else {
+                    Text(coordinator.keyedSoFar.isEmpty
+                         ? "Tap out the current letter"
+                         : Theme.codeString(for: coordinator.keyedSoFar))
+                        .foregroundStyle(coordinator.keyedSoFar.isEmpty ? .secondary : .primary)
+                }
+            }
+            .font(Theme.codeFont)
+            .frame(minHeight: 24)
+
+            if settings.timingGate != .off {
+                VStack(spacing: Theme.Spacing.xs) {
+                    Text("Timing").font(.caption2).foregroundStyle(.secondary)
+                    TimingMeter(position: coordinator.timingPosition)
+                        .frame(height: 24)
+                        .padding(.horizontal)
+                }
+            }
 
             Button("Hear it") {
                 coordinator.hearWord()
@@ -109,6 +133,10 @@ private final class SendCoordinator: ObservableObject, @unchecked Sendable {
     @Published private(set) var stageComplete = false
     @Published var errorFlash = false
     @Published var timingPosition: Double = 0
+    /// Elements keyed so far for the letter currently in progress (live feedback).
+    @Published var keyedSoFar: [MorseSymbol] = []
+    /// What was keyed when the last letter was rejected (shown during the error flash).
+    @Published var rejected: [MorseSymbol]?
 
     private var keyer: KeyerEngine!
     private var sender: SenderEngine!
@@ -131,6 +159,12 @@ private final class SendCoordinator: ObservableObject, @unchecked Sendable {
         return MorseCode.code(for: letter)
     }
 
+    /// The correct code for the current letter (used by the sent-vs-target readout).
+    var expectedCode: [MorseSymbol] {
+        guard currentIndex < word.count else { return [] }
+        return MorseCode.code(for: word[currentIndex]) ?? []
+    }
+
     init(settings: AppSettings, progress: ProgressStore, player: MorsePlayer, tone: ToneGenerator, stageIndex: Int) {
         self.settings = settings
         self.progress = progress
@@ -148,6 +182,8 @@ private final class SendCoordinator: ObservableObject, @unchecked Sendable {
         completedCount = 0
         isWordComplete = false
         errorFlash = false
+        keyedSoFar = []
+        rejected = nil
         letterStartAt = Date()
         firstKeyDownForLetter = nil
         settleGeneration += 1
@@ -170,6 +206,7 @@ private final class SendCoordinator: ObservableObject, @unchecked Sendable {
     private func handle(_ event: KeyerEvent) {
         switch event {
         case .element(let sym):
+            keyedSoFar.append(sym)
             sender.consumeTimed(.element(sym), pressMs: lastPressMs)
             updateTimingMeter(sym: sym, pressMs: lastPressMs)
         case .letterBreak, .wordBreak:
@@ -183,6 +220,8 @@ private final class SendCoordinator: ObservableObject, @unchecked Sendable {
         completedCount = sender.completedCount
         currentIndex = sender.currentIndex
         errorFlash = false
+        rejected = nil
+        keyedSoFar = []
         letterStartAt = Date()
         firstKeyDownForLetter = nil
         if sender.isComplete { wordCompleted() }
@@ -193,6 +232,8 @@ private final class SendCoordinator: ObservableObject, @unchecked Sendable {
             let hesitancy = (firstKeyDownForLetter ?? Date()).timeIntervalSince(letterStartAt) * 1000
             progress.record(letter: String(word[idx]), correct: false, hesitancyMs: hesitancy)
         }
+        rejected = keyedSoFar
+        keyedSoFar = []
         errorFlash = true
         errorFlashGeneration += 1
         let gen = errorFlashGeneration
@@ -244,6 +285,7 @@ private final class SendCoordinator: ObservableObject, @unchecked Sendable {
         // settle debounce below to close the letter after a pause.
         if firstKeyDownForLetter == nil { firstKeyDownForLetter = Date() }
         let ideal = (sym == .dot ? 1.0 : 3.0) * unitMs
+        keyedSoFar.append(sym)
         sender.consumeTimed(.element(sym), pressMs: ideal)
         updateTimingMeter(sym: sym, pressMs: ideal)
         resetSettleDebounce()
