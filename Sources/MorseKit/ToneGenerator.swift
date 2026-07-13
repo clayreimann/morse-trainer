@@ -1,12 +1,20 @@
 import AVFoundation
 
+/// Linear attack/release envelope. Each sample nudges the current gain toward
+/// the target (1 when gated on, 0 when off) by a fixed step, so amplitude never
+/// jumps discontinuously — a jump to/from zero is what produces an audible
+/// click/pop, especially on key release.
 public struct Envelope {
-    let rampSamples: Double
-    public init(sampleRate: Double, rampMs: Double) { rampSamples = sampleRate * rampMs / 1000 }
-    /// Linear attack from gate-on; used by ToneGenerator to scale amplitude near edges.
-    public func gain(atSample n: Int, gateOn: Bool) -> Double {
-        guard gateOn else { return 0 }
-        return min(1, Double(n) / rampSamples)
+    let step: Double
+    public init(sampleRate: Double, rampMs: Double) {
+        step = 1.0 / (sampleRate * rampMs / 1000)
+    }
+    /// Advances `current` one sample toward the gate target.
+    public func next(current: Double, gateOn: Bool) -> Double {
+        let target = gateOn ? 1.0 : 0.0
+        if current < target { return min(target, current + step) }
+        if current > target { return max(target, current - step) }
+        return current
     }
 }
 
@@ -16,9 +24,9 @@ public final class ToneGenerator: @unchecked Sendable {
     private let sampleRate: Double = 48000
     private var phase: Double = 0
     private var gateOn = false
-    private var gateSample = 0
+    private var currentGain: Double = 0
     public var frequency: Double = 550
-    private lazy var envelope = Envelope(sampleRate: sampleRate, rampMs: 5)
+    private lazy var envelope = Envelope(sampleRate: sampleRate, rampMs: 8)
 
     public init() { setup() }
     private func setup() {
@@ -27,10 +35,9 @@ public final class ToneGenerator: @unchecked Sendable {
             let abl = UnsafeMutableAudioBufferListPointer(audioBufferList)
             let inc = 2 * Double.pi * self.frequency / self.sampleRate
             for frame in 0..<Int(frameCount) {
-                let g = self.envelope.gain(atSample: self.gateSample, gateOn: self.gateOn)
-                let s = Float(sin(self.phase) * g * 0.6)
+                self.currentGain = self.envelope.next(current: self.currentGain, gateOn: self.gateOn)
+                let s = Float(sin(self.phase) * self.currentGain * 0.6)
                 self.phase += inc; if self.phase > 2 * .pi { self.phase -= 2 * .pi }
-                if self.gateOn { self.gateSample += 1 }
                 for buf in abl { (buf.mData!.assumingMemoryBound(to: Float.self))[frame] = s }
             }
             return noErr
@@ -53,10 +60,7 @@ public final class ToneGenerator: @unchecked Sendable {
     /// Turns the tone on/off. Starting the engine lazily here means the sidetone
     /// works on the very first key press, without requiring a prior playback.
     public func gate(_ on: Bool) {
-        if on {
-            if !engine.isRunning { start() }
-            gateSample = 0
-        }
+        if on, !engine.isRunning { start() }
         gateOn = on
     }
 }
