@@ -18,4 +18,16 @@ final class CurriculumTests: XCTestCase {
         XCTAssertEqual(Curriculum.default.lettersUnlocked(throughStage: 1),
                        Set("ETAON".map { $0 }))
     }
+    func testCurriculumCoversAllTwentySixLetters() {
+        let all = Set("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+        let unlocked = Curriculum.default.lettersUnlocked(throughStage: Curriculum.default.stages.count - 1)
+        XCTAssertEqual(unlocked, all, "missing: \(all.subtracting(unlocked).sorted())")
+    }
+    func testEachStageIntroducesNewLetters() {
+        // Indices are sequential and every stage adds at least one letter.
+        for (i, stage) in Curriculum.default.stages.enumerated() {
+            XCTAssertEqual(stage.index, i)
+            XCTAssertFalse(stage.newLetters.isEmpty)
+        }
+    }
 }
