@@ -9,7 +9,7 @@ Paste these into App Store Connect. Character limits noted; counts are approxima
 - **Secondary category:** Utilities
 - **Age rating:** 4+ (no objectionable content)
 - **Copyright:** `© 2026 Clay Jensen-Reimann`
-- **Bundle ID:** `com.morsetrainer.app`
+- **Bundle ID:** `cloud.madtown.morse.app`
 - **SKU (your choice):** `morse-trainer-ios`
 - **Price:** Free (suggested)
 

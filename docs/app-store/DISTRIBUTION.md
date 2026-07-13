@@ -5,7 +5,7 @@ The app builds and **archives cleanly** (verified). What remains needs your Appl
 ## Prerequisites (one-time)
 1. **Paid Apple Developer Program** membership on the team you'll ship with. Confirm the **Team ID** at developer.apple.com → Membership, and make sure `Signing.xcconfig` (`DEVELOPMENT_TEAM`) matches it. (Currently `PQMW4AT355`.)
 2. **Distribution certificate** — you currently have only "Apple Development" certs. Xcode creates the "Apple Distribution" cert automatically the first time you distribute (GUI path), or via `-allowProvisioningUpdates` (CLI). This writes to your account.
-3. **App Store Connect app record** — at appstoreconnect.apple.com → Apps → +, choose the bundle ID `com.morsetrainer.app`, platform iOS. (You can't upload a build until this exists.)
+3. **App Store Connect app record** — at appstoreconnect.apple.com → Apps → +, choose the bundle ID `cloud.madtown.morse.app`, platform iOS. (You can't upload a build until this exists.)
 
 ## Path A — Xcode Organizer (recommended)
 1. `xcodegen generate` (if needed), open `MorseTrainerApp.xcodeproj`.

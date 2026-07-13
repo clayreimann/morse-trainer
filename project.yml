@@ -1,6 +1,6 @@
 name: MorseTrainerApp
 options:
-  bundleIdPrefix: com.morsetrainer
+  bundleIdPrefix: cloud.madtown.morse
   deploymentTarget:
     macOS: "14.0"
     iOS: "17.0"
@@ -31,7 +31,7 @@ targets:
         # prompt) and set a store category.
         INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.education
-        PRODUCT_BUNDLE_IDENTIFIER: com.morsetrainer.app
+        PRODUCT_BUNDLE_IDENTIFIER: cloud.madtown.morse.app
         MARKETING_VERSION: "1.0"
         CURRENT_PROJECT_VERSION: "1"
 schemes:
