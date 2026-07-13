@@ -1,8 +1,8 @@
-# Privacy Policy — Morse Trainer
+# Privacy Policy — Dah Vinci
 
 _Last updated: 2026-07-13_
 
-Morse Trainer does not collect, store, transmit, or share any personal data.
+Dah Vinci does not collect, store, transmit, or share any personal data.
 
 - **No account** is required to use the app.
 - **No analytics, advertising, or tracking** of any kind is included.

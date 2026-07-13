@@ -23,6 +23,7 @@ targets:
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: "Dah Vinci"
         # Generates an empty UILaunchScreen in the Info.plist so iOS launches at
         # native resolution instead of the letterboxed compatibility mode.
         INFOPLIST_KEY_UILaunchScreen_Generation: YES

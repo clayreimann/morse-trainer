@@ -1,16 +1,16 @@
-# App Store metadata — Morse Trainer 1.0
+# App Store metadata — Dah Vinci 1.0
 
 Paste these into App Store Connect. Character limits noted; counts are approximate — trim if the field complains.
 
 ## Basics
-- **App name** (≤30): `Morse Trainer`
+- **App name** (≤30): `Dah Vinci`
 - **Subtitle** (≤30): `Learn Morse code by keying`
 - **Primary category:** Education
 - **Secondary category:** Utilities
 - **Age rating:** 4+ (no objectionable content)
 - **Copyright:** `© 2026 Clay Jensen-Reimann`
 - **Bundle ID:** `cloud.madtown.morse.app`
-- **SKU (your choice):** `morse-trainer-ios`
+- **SKU (your choice):** `dahvinci-ios`
 - **Price:** Free (suggested)
 
 ## Promotional text (≤170) — editable anytime without review
@@ -20,7 +20,7 @@ Learn Morse code by sending and copying real words — adaptive hints, a live sp
 
 ## Description (≤4000)
 ```
-Morse Trainer teaches you Morse code the way you actually use it — by sending and copying real words, not just memorizing dots and dashes.
+Dah Vinci teaches you Morse code the way you actually use it — by sending and copying real words, not just memorizing dots and dashes.
 
 LEARN BY DOING
 Work through a guided progression that introduces a few letters at a time and drills them inside common words, so every letter sticks in context. As you get faster and more confident, hints fade automatically — the app tracks your accuracy and hesitation on each letter and stops holding your hand once you've got it. The path covers the full alphabet, one small step at a time.
@@ -44,7 +44,7 @@ MAKE IT YOURS
 PRIVATE BY DESIGN
 Everything runs on-device. No account, no ads, no tracking — nothing you do leaves your device.
 
-Whether you're studying for a ham radio license, prepping for CW, or you just love the rhythm of the code, Morse Trainer helps you build a real fist and reliable copy, one word at a time.
+Whether you're studying for a ham radio license, prepping for CW, or you just love the rhythm of the code, Dah Vinci helps you build a real fist and reliable copy, one word at a time.
 ```
 
 ## Keywords (≤100, comma-separated, no spaces after commas)
@@ -53,9 +53,9 @@ morse,code,cw,telegraph,ham,radio,practice,koch,paris,wpm,farnsworth,dit,dah,key
 ```
 
 ## URLs
-- **Support URL** (required): `https://github.com/clayreimann/morse-trainer` — or a dedicated page with a contact method.
-- **Marketing URL** (optional): same, or leave blank.
-- **Privacy Policy URL** (required): host `docs/app-store/privacy-policy.md` somewhere public (GitHub Pages, a Gist, or the repo's raw file) and use that URL.
+- **Support URL** (required): `https://dahvinci.madtown.cloud/support`
+- **Marketing URL** (optional): `https://dahvinci.madtown.cloud`
+- **Privacy Policy URL** (required): `https://dahvinci.madtown.cloud/privacy`
 
 ## What's New (version 1.0 release notes)
 ```
