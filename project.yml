@@ -18,6 +18,9 @@ targets:
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES
+        # Generates an empty UILaunchScreen in the Info.plist so iOS launches at
+        # native resolution instead of the letterboxed compatibility mode.
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
         PRODUCT_BUNDLE_IDENTIFIER: com.morsetrainer.app
         MARKETING_VERSION: "1.0"
         CURRENT_PROJECT_VERSION: "1"
