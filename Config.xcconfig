@@ -1,0 +1,6 @@
+// Base build config for the app target. Optionally pulls in local, uncommitted
+// signing settings (Team ID etc.). The `?` makes the include optional, so a
+// fresh clone without Signing.xcconfig still generates and builds (for the
+// simulator); each developer drops in their own Signing.xcconfig for device
+// builds.
+#include? "Signing.xcconfig"

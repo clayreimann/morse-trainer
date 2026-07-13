@@ -12,6 +12,11 @@ targets:
     type: application
     platform: [macOS, iOS]
     sources: [App/MorseTrainerApp.swift]
+    # Pulls in local (gitignored) signing settings so `xcodegen generate` never
+    # wipes your Xcode team config. See Config.xcconfig / Signing.xcconfig.
+    configFiles:
+      Debug: Config.xcconfig
+      Release: Config.xcconfig
     dependencies:
       - package: MorseTrainer
         product: MorseUI
