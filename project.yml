@@ -27,6 +27,10 @@ targets:
         # Generates an empty UILaunchScreen in the Info.plist so iOS launches at
         # native resolution instead of the letterboxed compatibility mode.
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        # iPad requires all four orientations (multitasking); iPhone portrait +
+        # landscape. Missing these is an App Store upload rejection.
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         # App Store: declare no non-exempt encryption (avoids the per-submission
         # prompt) and set a store category.
