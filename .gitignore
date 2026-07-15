@@ -17,3 +17,6 @@ MorseTrainerApp.xcodeproj/
 
 # Local signing config (Team ID) — personal, do not commit.
 Signing.xcconfig
+
+# Local design reference
+Morse redesign.pdf

@@ -4,10 +4,6 @@
 <dict>
 	<key>method</key>
 	<string>app-store-connect</string>
-	<!-- Verify this is your PAID team's ID (Developer portal → Membership).
-	     Update Signing.xcconfig to match if it differs. -->
-	<key>teamID</key>
-	<string>PQMW4AT355</string>
 	<key>signingStyle</key>
 	<string>automatic</string>
 	<key>destination</key>
