@@ -17,8 +17,8 @@
 
 The root of `dah-vinci-site` contains:
 
-- The current `website/index.html`, `privacy.html`, `support.html`, `404.html`, and `favicon.svg` files, moved to the new repository root.
-- `wrangler.jsonc` as the deployment source of truth. It names the Worker `dahvinci`, points static assets at the repository root, enables the existing `404.html`, serves `.html` files at extensionless URLs, and declares the custom domain.
+- A `website/` directory containing only the deployable `index.html`, `privacy.html`, `support.html`, `404.html`, and `favicon.svg` files.
+- `wrangler.jsonc` as the deployment source of truth. It names the Worker `dahvinci`, points static assets at `website/`, enables the existing `404.html`, serves `.html` files at extensionless URLs, and declares the custom domain.
 - `package.json` with local preview, validation, and deployment scripts.
 - `package-lock.json` pinning the tested Wrangler dependency graph for local and Cloudflare builds.
 - `.gitignore` excluding `node_modules/`, Wrangler state, and operating-system metadata.
@@ -31,7 +31,7 @@ The root of `dah-vinci-site` contains:
 The migration must preserve the source material until the destination is safe:
 
 1. Create `/Users/clay/Code/claude/dah-vinci/dah-vinci-site` and initialize it as a Git repository with `main` as its initial branch.
-2. Copy the existing `morse-trainer/website/` contents and the deployment design spec into the new repository.
+2. Copy the deployable files from `morse-trainer/website/` into the destination `website/` directory, move deployment documentation to the destination repository root, and copy the deployment design spec into the new repository.
 3. Add the site repository configuration and documentation.
 4. Verify file parity, local routing, Wrangler configuration, and Git status inside the new repository.
 5. Commit the complete initial site repository.
