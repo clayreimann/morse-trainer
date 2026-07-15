@@ -33,7 +33,7 @@ final class SenderFlowTests: XCTestCase {
         e.onError = { errored.append($0) }
 
         // T expected (dash); send a dot instead.
-        e.consume(.element(.dot)); e.consume(.letterBreak)
+        e.consume(.element(.dot)); e.flushLetter()
         XCTAssertEqual(e.completedCount, 0)
         XCTAssertEqual(e.currentIndex, 0)
         XCTAssertTrue(e.lastLetterWasError)

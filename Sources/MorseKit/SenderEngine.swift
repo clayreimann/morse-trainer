@@ -26,21 +26,41 @@ public final class SenderEngine: @unchecked Sendable {
             guard currentIndex < expected.count else { return }
             buffer.append(sym)
             if let p = pressMs { pressTimings.append(p) }
-            // Guided completion: the target word is known, so a letter is
-            // finished once the learner has keyed the expected number of
-            // elements. Boundaries come from element COUNT, not inter-element
-            // timing — humans (especially learners) can't hit sub-unit gaps at
-            // speed, so relying on timing breaks would reject multi-element
-            // letters like "A" (·−) after the first element.
-            let need = expected[currentIndex].count
-            if need > 0 && buffer.count >= need { evaluateLetter() }
+            // Guided completion: the target word is known, so a CORRECT letter
+            // is finished the instant its exact code has been keyed — this
+            // keeps success feedback responsive. A wrong or still-incomplete
+            // buffer is NOT judged on element count alone, though: humans
+            // (especially learners) pause between elements, and a premature
+            // judgment on count would reject letters mid-entry. Wrong/partial
+            // letters are only judged when the learner pauses (flushLetter())
+            // or grossly overshoots the expected length.
+            let code = expected[currentIndex]
+            let need = code.count
+            if need > 0 && buffer == code {
+                evaluateLetter()
+            } else if buffer.count >= need * 2 {
+                // Overshoot tolerance: allow up to 2x the expected element
+                // count before force-judging (e.g. a 2-element target tolerates
+                // up to 4 taps — "four taps for a two-tap word" — before we
+                // stop waiting and judge it, which will fail the pattern match).
+                evaluateLetter()
+            }
         case .letterBreak, .wordBreak:
-            // A timing-driven break must not reject a letter still being keyed.
-            // Count-based completion above already closes finished letters, so
-            // a break arriving mid-character (from a natural inter-element
-            // pause) is ignored rather than evaluating a partial buffer.
+            // These fire on ordinary learner inter-element hesitation and are
+            // unreliable as a signal that the letter is "done" — they must
+            // remain no-ops here. Pause-driven judgment of a wrong/incomplete
+            // letter now comes solely from the caller invoking flushLetter()
+            // (e.g. after a longer, deliberate pause), not from these events.
             break
         }
+    }
+    /// Judge the current buffer against the expected letter, if any elements
+    /// have been keyed. Intended to be called when the learner pauses long
+    /// enough to signal they're done with this letter (whether right or
+    /// wrong). A pause with nothing keyed yet is a no-op — there's nothing to
+    /// judge, and it must not be treated as an error or advance anything.
+    public func flushLetter() {
+        if !buffer.isEmpty { evaluateLetter() }
     }
     private func evaluateLetter() {
         guard !buffer.isEmpty, currentIndex < expected.count else { buffer = []; pressTimings = []; return }

@@ -15,7 +15,7 @@ final class SenderEngineTests: XCTestCase {
     }
     func testWrongPatternDoesNotAdvance() {
         let e = makeEngine("T")
-        e.consume(.element(.dot)); e.consume(.letterBreak)    // wrong (E not T)
+        e.consume(.element(.dot)); e.flushLetter()    // wrong (E not T), judged via pause
         XCTAssertEqual(e.completedCount, 0)
         XCTAssertTrue(e.lastLetterWasError)
     }
@@ -48,6 +48,49 @@ final class SenderEngineTests: XCTestCase {
         XCTAssertFalse(e.lastLetterWasError)    // ignored, still waiting for the dash
         XCTAssertEqual(e.completedCount, 0)
         e.consume(.element(.dash))              // dash arrives → completes A
+        XCTAssertTrue(e.isComplete)
+    }
+
+    // A buffer whose element COUNT matches the target but whose pattern is
+    // wrong (·− sent as −·) must not be judged the instant the count is hit.
+    // It should only be judged once the learner pauses (flushLetter()).
+    func testWrongLengthNotJudgedUntilFlush() {
+        let e = makeEngine("A")                 // A = ·−
+        e.consume(.element(.dash)); e.consume(.element(.dot)) // −· (wrong order)
+        XCTAssertEqual(e.completedCount, 0)
+        XCTAssertFalse(e.lastLetterWasError)    // not yet judged
+        e.flushLetter()
+        XCTAssertTrue(e.lastLetterWasError)
+    }
+
+    // Gross overshoot (2x the expected element count) force-judges the letter
+    // without needing an explicit flush — a runaway buffer must not wait
+    // forever for a pause that never comes.
+    func testOvershootForcesJudgment() {
+        let e = makeEngine("A")                 // A = ·− (need = 2)
+        e.consume(.element(.dot))
+        e.consume(.element(.dot))
+        e.consume(.element(.dot))
+        e.consume(.element(.dot))               // 4th element == need*2
+        XCTAssertTrue(e.lastLetterWasError)
+        XCTAssertEqual(e.completedCount, 0)
+    }
+
+    // Flushing with nothing keyed is a no-op: no error, no advance.
+    func testFlushWithEmptyBufferIsNoop() {
+        let e = makeEngine("A")
+        var errorCount = 0
+        e.onError = { _ in errorCount += 1 }
+        e.flushLetter()
+        XCTAssertEqual(e.completedCount, 0)
+        XCTAssertFalse(e.lastLetterWasError)
+        XCTAssertEqual(errorCount, 0)
+    }
+
+    // An exact pattern match completes immediately, without any flush.
+    func testExactMatchCompletesWithoutFlush() {
+        let e = makeEngine("A")                 // A = ·−
+        e.consume(.element(.dot)); e.consume(.element(.dash))
         XCTAssertTrue(e.isComplete)
     }
 }

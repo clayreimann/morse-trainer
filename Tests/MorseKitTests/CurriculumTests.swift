@@ -30,4 +30,16 @@ final class CurriculumTests: XCTestCase {
             XCTAssertFalse(stage.newLetters.isEmpty)
         }
     }
+    func testQuizWords() {
+        let words0 = Curriculum.default.quizWords(throughStage: 0)
+        XCTAssertFalse(words0.isEmpty)
+        XCTAssertTrue(words0.contains("AT"))
+        XCTAssertTrue(words0.contains("EAT"))
+        let allowed: Set<Character> = ["E", "T", "A"]
+        for word in words0 {
+            XCTAssertTrue(Set(word).isSubset(of: allowed), "\(word) uses letters beyond stage 0")
+        }
+        let words3 = Curriculum.default.quizWords(throughStage: 3)
+        XCTAssertGreaterThanOrEqual(words3.count, words0.count)
+    }
 }

@@ -30,4 +30,13 @@ public struct Curriculum: Sendable {
     public func lettersUnlocked(throughStage i: Int) -> Set<Character> {
         Set(stages.prefix(i + 1).flatMap { $0.newLetters }.flatMap { $0 }.map { Character(String($0)) })
     }
+    /// Word pool for Learn's Quiz mode: every word from stages 0...clampedIndex
+    /// whose letters are all within the letters unlocked through that stage.
+    public func quizWords(throughStage i: Int) -> [String] {
+        let clampedIndex = min(max(0, i), stages.count - 1)
+        let unlocked = lettersUnlocked(throughStage: clampedIndex)
+        return stages.prefix(clampedIndex + 1).flatMap { stage in
+            stage.words.filter { word in Set(word).isSubset(of: unlocked) }
+        }
+    }
 }
