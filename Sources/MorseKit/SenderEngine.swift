@@ -26,39 +26,17 @@ public final class SenderEngine: @unchecked Sendable {
             guard currentIndex < expected.count else { return }
             buffer.append(sym)
             if let p = pressMs { pressTimings.append(p) }
-            // Guided completion: the target word is known, so a CORRECT letter
-            // is finished the instant its exact code has been keyed — this
-            // keeps success feedback responsive. A wrong or still-incomplete
-            // buffer is NOT judged on element count alone, though: humans
-            // (especially learners) pause between elements, and a premature
-            // judgment on count would reject letters mid-entry. Wrong/partial
-            // letters are only judged when the learner pauses (flushLetter())
-            // or grossly overshoots the expected length.
-            let code = expected[currentIndex]
-            let need = code.count
-            if need > 0 && buffer == code {
-                evaluateLetter()
-            } else if buffer.count >= need * 2 {
-                // Overshoot tolerance: allow up to 2x the expected element
-                // count before force-judging (e.g. a 2-element target tolerates
-                // up to 4 taps — "four taps for a two-tap word" — before we
-                // stop waiting and judge it, which will fail the pattern match).
-                evaluateLetter()
-            }
         case .letterBreak, .wordBreak:
-            // These fire on ordinary learner inter-element hesitation and are
-            // unreliable as a signal that the letter is "done" — they must
-            // remain no-ops here. Pause-driven judgment of a wrong/incomplete
-            // letter now comes solely from the caller invoking flushLetter()
-            // (e.g. after a longer, deliberate pause), not from these events.
+            // These events can fire during ordinary inter-element hesitation,
+            // so they remain no-ops. Every non-empty attempt is judged only
+            // when the caller's settle pause invokes flushLetter().
             break
         }
     }
-    /// Judge the current buffer against the expected letter, if any elements
-    /// have been keyed. Intended to be called when the learner pauses long
-    /// enough to signal they're done with this letter (whether right or
-    /// wrong). A pause with nothing keyed yet is a no-op — there's nothing to
-    /// judge, and it must not be treated as an error or advance anything.
+    /// Judge the current buffer against the expected letter when the caller's
+    /// settle pause determines the attempt is complete. This is the sole
+    /// grading boundary for every non-empty attempt. A pause with nothing keyed
+    /// is a no-op and does not report an error or advance progress.
     public func flushLetter() {
         if !buffer.isEmpty { evaluateLetter() }
     }

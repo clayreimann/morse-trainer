@@ -12,16 +12,16 @@ final class SenderFlowTests: XCTestCase {
         var completedLetters: [Int] = []
         e.onLetterComplete = { completedLetters.append($0) }
 
-        e.consume(.element(.dash)); e.consume(.letterBreak) // T
+        e.consume(.element(.dash)); e.flushLetter()
         XCTAssertEqual(e.completedCount, 1)
         XCTAssertEqual(e.currentIndex, 1)
         XCTAssertFalse(e.lastLetterWasError)
 
-        e.consume(.element(.dot)); e.consume(.letterBreak) // E
+        e.consume(.element(.dot)); e.flushLetter()
         XCTAssertEqual(e.completedCount, 2)
         XCTAssertEqual(e.currentIndex, 2)
 
-        e.consume(.element(.dot)); e.consume(.element(.dash)); e.consume(.letterBreak) // A
+        e.consume(.element(.dot)); e.consume(.element(.dash)); e.flushLetter()
         XCTAssertEqual(e.completedCount, 3)
         XCTAssertTrue(e.isComplete)
         XCTAssertEqual(completedLetters, [0, 1, 2])
