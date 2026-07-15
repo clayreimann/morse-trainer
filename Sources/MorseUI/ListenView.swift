@@ -33,6 +33,10 @@ public struct ListenView: View {
         _engine = State(initialValue: ListenEngine(target: word, mode: .live))
     }
 
+    private var accent: Color {
+        settings.appColor.color
+    }
+
     public var body: some View {
         VStack(spacing: Theme.Spacing.lg) {
             Picker("Mode", selection: $mode) {
@@ -48,6 +52,8 @@ public struct ListenView: View {
                 Label("Play", systemImage: "speaker.wave.2.fill")
             }
             .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            .tint(accent)
 
             switch mode {
             case .live:
@@ -75,12 +81,21 @@ public struct ListenView: View {
                 HStack(spacing: Theme.Spacing.xs) {
                     ForEach(Array(liveResults.enumerated()), id: \.offset) { _, entry in
                         let (ch, result) = entry
-                        Text(String(ch))
-                            .font(Theme.codeFont.weight(.bold))
-                            .frame(width: 28, height: 28)
-                            .background((result == .correct ? Theme.mastered : Color.red).opacity(0.22))
-                            .foregroundStyle(result == .correct ? Theme.mastered : Color.red)
-                            .clipShape(Circle())
+                        Group {
+                            if result == .correct {
+                                Text(String(ch))
+                                    .font(Theme.codeFont.weight(.bold))
+                                    .frame(width: 28, height: 28)
+                                    .background(Circle().fill(accent))
+                                    .foregroundStyle(settings.appColor.onColor)
+                            } else {
+                                Text(String(ch))
+                                    .font(Theme.codeFont.weight(.bold))
+                                    .frame(width: 28, height: 28)
+                                    .background(Circle().strokeBorder(Color.red, lineWidth: 2))
+                                    .foregroundStyle(Color.red)
+                            }
+                        }
                     }
                 }
             }
@@ -100,6 +115,15 @@ public struct ListenView: View {
                     .foregroundStyle(Theme.mastered)
             }
         }
+        .padding(Theme.Spacing.lg)
+        .background(
+            RoundedRectangle(cornerRadius: 24)
+                .fill(Theme.cardFill)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 24)
+                        .strokeBorder(Theme.cardStroke)
+                )
+        )
     }
 
     // MARK: - Copy-then-check mode
@@ -127,6 +151,15 @@ public struct ListenView: View {
                 }
             }
         }
+        .padding(Theme.Spacing.lg)
+        .background(
+            RoundedRectangle(cornerRadius: 24)
+                .fill(Theme.cardFill)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 24)
+                        .strokeBorder(Theme.cardStroke)
+                )
+        )
     }
 
     private func submitCopy() {

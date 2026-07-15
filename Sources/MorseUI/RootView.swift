@@ -33,6 +33,7 @@ public struct RootView: View {
 
     public var body: some View {
         platformBody
+            .tint(store.settings.appColor.color)
             .sheet(isPresented: $showReference) {
                 ReferenceSheet(
                     play: { player.play($0, settings: store.settings.timing, frequency: store.settings.frequencyHz) },

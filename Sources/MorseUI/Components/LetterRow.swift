@@ -11,16 +11,31 @@ public struct LetterRow: View {
     /// The current letter's code, shown beneath it. `nil` suppresses the hint
     /// entirely (hard difficulty, or the letter is already mastered).
     public let hintForCurrent: [MorseSymbol]?
+    /// The user's chosen accent, used for the current letter and its hint.
+    public let accent: Color
 
-    public init(letters: [Character], completedCount: Int, currentIndex: Int, hintForCurrent: [MorseSymbol]?) {
+    /// Fixed width for every letter's column, sized to fit the longest
+    /// curriculum word (7 letters, e.g. "NUCLEAR") within a phone width. The
+    /// current-letter hint may extend slightly past its slot (it uses
+    /// `.fixedSize` and doesn't drive slot width) — that's fine.
+    private let slotWidth: CGFloat = 40
+
+    public init(
+        letters: [Character],
+        completedCount: Int,
+        currentIndex: Int,
+        hintForCurrent: [MorseSymbol]?,
+        accent: Color = .primary
+    ) {
         self.letters = letters
         self.completedCount = completedCount
         self.currentIndex = currentIndex
         self.hintForCurrent = hintForCurrent
+        self.accent = accent
     }
 
     public var body: some View {
-        HStack(alignment: .top, spacing: Theme.Spacing.md) {
+        HStack(alignment: .top, spacing: Theme.Spacing.sm) {
             ForEach(Array(letters.enumerated()), id: \.offset) { index, letter in
                 VStack(spacing: Theme.Spacing.xs) {
                     Text(String(letter))
@@ -30,7 +45,9 @@ public struct LetterRow: View {
                     if index == currentIndex, let hint = hintForCurrent {
                         Text(Theme.codeString(for: hint))
                             .font(Theme.codeFont)
-                            .foregroundStyle(Theme.current)
+                            .foregroundStyle(accent)
+                            .lineLimit(1)
+                            .fixedSize(horizontal: true, vertical: false)
                     } else {
                         // Reserve the row's height so letters don't jump when a hint appears/disappears.
                         Text(" ")
@@ -38,14 +55,15 @@ public struct LetterRow: View {
                             .hidden()
                     }
                 }
+                .frame(width: slotWidth)
             }
         }
     }
 
     private func color(for index: Int) -> Color {
-        if index < completedCount { return Theme.mastered }
-        if index == currentIndex { return Theme.current }
-        return Theme.locked
+        if index < completedCount { return Color.secondary }
+        if index == currentIndex { return accent }
+        return Color(white: 0.75)
     }
 }
 

@@ -16,6 +16,10 @@ public struct PlaygroundView: View {
         self.player = player
     }
 
+    private var accent: Color {
+        settings.appColor.color
+    }
+
     public var body: some View {
         VStack(spacing: Theme.Spacing.lg) {
             TextField("Type something\u{2026}", text: $text)
@@ -31,6 +35,15 @@ public struct PlaygroundView: View {
                     .padding(.vertical, Theme.Spacing.sm)
             }
             .frame(maxHeight: .infinity)
+            .padding(Theme.Spacing.md)
+            .background(
+                RoundedRectangle(cornerRadius: 24)
+                    .fill(Theme.cardFill)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 24)
+                            .strokeBorder(Theme.cardStroke)
+                    )
+            )
 
             Button {
                 player.play(text, settings: settings.timing, frequency: settings.frequencyHz)
@@ -39,49 +52,55 @@ public struct PlaygroundView: View {
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
+            .tint(accent)
             .disabled(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         }
         .padding()
         .navigationTitle("Playground")
     }
 
-    /// Renders each character of `text` as a letter-over-code chip, with
-    /// spaces shown as a widened gap (word separation) rather than a chip,
-    /// so letter boundaries and word boundaries both read clearly.
+    /// Renders each non-space character of `text` as a Morse-only chip (the
+    /// typed letters already appear in the text field above, so there's no
+    /// need to repeat them here). Spaces render as a visible "/" word
+    /// separator per Morse convention, rather than a blank gap.
     private var encodedDisplay: some View {
         let characters = Array(text.uppercased())
         let codes = MorseCode.encode(text)
         return FlowLayout(spacing: Theme.Spacing.sm) {
             ForEach(Array(zip(characters.indices, characters)), id: \.0) { index, ch in
                 if ch == " " {
-                    Spacer()
-                        .frame(width: Theme.Spacing.lg, height: 1)
+                    wordSeparatorChip
                 } else if let code = codes[index] {
-                    VStack(spacing: 2) {
-                        Text(String(ch))
-                            .font(Theme.letterFont)
-                        Text(Theme.codeString(for: code))
-                            .font(Theme.codeFont)
-                            .foregroundStyle(.secondary)
-                    }
-                    .padding(.horizontal, Theme.Spacing.xs)
-                    .padding(.vertical, Theme.Spacing.xs)
-                    .background(
-                        RoundedRectangle(cornerRadius: Theme.Radius.sm)
-                            .fill(Color.secondary.opacity(0.08))
-                    )
+                    codeChip(Theme.codeString(for: code))
                 } else {
-                    VStack(spacing: 2) {
-                        Text(String(ch))
-                            .font(Theme.letterFont)
-                        Text("?")
-                            .font(Theme.codeFont)
-                            .foregroundStyle(.secondary)
-                    }
-                    .padding(.horizontal, Theme.Spacing.xs)
+                    codeChip("?")
                 }
             }
         }
+    }
+
+    /// A single Morse-only chip in the card's standard rounded-rect style.
+    private func codeChip(_ content: String) -> some View {
+        Text(content)
+            .font(Theme.codeFont)
+            .padding(.horizontal, Theme.Spacing.sm)
+            .padding(.vertical, Theme.Spacing.xs)
+            .background(
+                RoundedRectangle(cornerRadius: Theme.Radius.sm)
+                    .fill(Theme.cardFill)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: Theme.Radius.sm)
+                            .strokeBorder(Theme.cardStroke)
+                    )
+            )
+    }
+
+    /// A visible word-boundary marker ("/") shown in place of a space.
+    private var wordSeparatorChip: some View {
+        Text("/")
+            .font(Theme.codeFont)
+            .foregroundStyle(.secondary)
+            .padding(.horizontal, Theme.Spacing.xs)
     }
 }
 

@@ -25,6 +25,7 @@ public final class SettingsStore: ObservableObject {
     @AppStorage("morse.keyboardSendingEnabled") private var storedKeyboardSendingEnabled: Bool = true
     @AppStorage("morse.paddleDotKey") private var storedPaddleDotKey: String = "z"
     @AppStorage("morse.paddleDashKey") private var storedPaddleDashKey: String = "x"
+    @AppStorage("morse.appColor") private var storedAppColorRaw: String = AppColor.charcoal.rawValue
 
     public init() {}
 
@@ -102,6 +103,11 @@ public final class SettingsStore: ObservableObject {
         return String(ch).lowercased()
     }
 
+    public var appColor: AppColor {
+        get { AppColor(rawValue: storedAppColorRaw) ?? .charcoal }
+        set { objectWillChange.send(); storedAppColorRaw = newValue.rawValue }
+    }
+
     /// A plain, UI-framework-independent snapshot of the current settings —
     /// this is what `RootView` threads down into the practice screens.
     public var settings: AppSettings {
@@ -118,6 +124,7 @@ public final class SettingsStore: ObservableObject {
         s.keyboardSendingEnabled = keyboardSendingEnabled
         s.paddleDotKey = paddleDotKey
         s.paddleDashKey = paddleDashKey
+        s.appColor = appColor
         return s
     }
 }
@@ -133,6 +140,20 @@ public struct SettingsView: View {
 
     public var body: some View {
         Form {
+            Section("App color") {
+                HStack(spacing: 20) {
+                    ForEach(AppColor.allCases) { c in
+                        Circle().fill(c.swatch).frame(width: 34, height: 34)
+                            .overlay(Circle().strokeBorder(Color(.sRGB, white: 1, opacity: store.appColor == c ? 1 : 0), lineWidth: 2))
+                            .overlay(Circle().strokeBorder(c.swatch, lineWidth: store.appColor == c ? 3 : 0).padding(-3))
+                            .contentShape(Circle())
+                            .onTapGesture { store.appColor = c }
+                            .accessibilityLabel(c.rawValue)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+
             Section("Timing") {
                 Stepper(
                     "Character speed: \(Int(store.charWPM)) WPM",

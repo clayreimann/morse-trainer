@@ -78,5 +78,65 @@ public enum Theme {
         public static let sm: CGFloat = 6
         public static let md: CGFloat = 12
         public static let lg: CGFloat = 20
+        /// The key button's corner radius (large rounded rectangle, not a pill).
+        public static let key: CGFloat = 36
+    }
+
+    // MARK: - Cards
+
+    #if canImport(UIKit)
+    /// Subtle grouped-background fill for card containers.
+    public static let cardFill = Color(uiColor: .secondarySystemBackground)
+    /// Hairline stroke for card containers.
+    public static let cardStroke = Color(uiColor: .separator)
+    #elseif canImport(AppKit)
+    public static let cardFill = Color(nsColor: .underPageBackgroundColor)
+    public static let cardStroke = Color(nsColor: .separatorColor)
+    #else
+    public static let cardFill = Color.gray.opacity(0.1)
+    public static let cardStroke = Color.gray.opacity(0.2)
+    #endif
+}
+
+/// Platform shim for the adaptive system background color, used by
+/// `AppColor.onColor` to compute a contrasting inverse of `.primary` for the
+/// `charcoal` accent (which itself resolves to `.primary`).
+enum PlatformColor {
+    #if canImport(UIKit)
+    static var systemBackgroundColor: UIColor { .systemBackground }
+    #elseif canImport(AppKit)
+    static var systemBackgroundColor: NSColor { .windowBackgroundColor }
+    #endif
+}
+
+public extension AppColor {
+    /// The resolved accent color. `charcoal` is adaptive (near-black in light,
+    /// near-white in dark) so the monochrome default reads in both themes.
+    var color: Color {
+        switch self {
+        case .charcoal: return .primary
+        case .indigo:   return Color(red: 0.31, green: 0.31, blue: 0.85)
+        case .teal:     return Color(red: 0.02, green: 0.62, blue: 0.55)
+        case .rust:     return Color(red: 0.75, green: 0.38, blue: 0.23)
+        }
+    }
+    /// A contrasting color to place ON TOP of `color` (e.g. a key label).
+    var onColor: Color {
+        switch self {
+        #if canImport(UIKit) || canImport(AppKit)
+        case .charcoal: return Color(PlatformColor.systemBackgroundColor) // inverse of .primary
+        #else
+        case .charcoal: return Color.white
+        #endif
+        default: return .white
+        }
+    }
+    /// A fixed swatch color for the settings picker (charcoal shows as a dark disc
+    /// even in the picker, independent of theme).
+    var swatch: Color {
+        switch self {
+        case .charcoal: return Color(white: 0.16)
+        default:        return color
+        }
     }
 }
