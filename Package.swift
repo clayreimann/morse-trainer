@@ -12,5 +12,6 @@ let package = Package(
         .target(name: "MorseKit"),
         .target(name: "MorseUI", dependencies: ["MorseKit"]),
         .testTarget(name: "MorseKitTests", dependencies: ["MorseKit"]),
+        .testTarget(name: "MorseUITests", dependencies: ["MorseUI"]),
     ]
 )

@@ -40,7 +40,12 @@ public struct LetterRow: View {
                 VStack(spacing: Theme.Spacing.xs) {
                     Text(String(letter))
                         .font(Theme.letterFont)
-                        .foregroundStyle(color(for: index))
+                        .foregroundStyle(Self.color(
+                            for: index,
+                            completedCount: completedCount,
+                            currentIndex: currentIndex,
+                            accent: accent
+                        ))
 
                     if index == currentIndex, let hint = hintForCurrent {
                         Text(Theme.codeString(for: hint))
@@ -60,8 +65,13 @@ public struct LetterRow: View {
         }
     }
 
-    private func color(for index: Int) -> Color {
-        if index < completedCount { return Color.secondary }
+    static func color(
+        for index: Int,
+        completedCount: Int,
+        currentIndex: Int,
+        accent: Color
+    ) -> Color {
+        if index < completedCount { return .green }
         if index == currentIndex { return accent }
         return Color(white: 0.75)
     }
