@@ -15,7 +15,12 @@ ARCHIVE="build/DahVinci.xcarchive"
 echo "==> Regenerating the Xcode project (picks up project.yml changes)"
 xcodegen generate
 
-echo "==> Archiving ${SCHEME} for generic iOS device"
+# Auto-increment the build number (CFBundleVersion) so each upload is unique
+# and monotonically increasing, without editing project.yml. App Store Connect
+# rejects a build whose number isn't higher than a previously uploaded one.
+BUILD_NUMBER="$(date +%Y%m%d%H%M)"
+
+echo "==> Archiving ${SCHEME} for generic iOS device (build ${BUILD_NUMBER})"
 echo "    (signs with your team; -allowProvisioningUpdates may create the"
 echo "     distribution cert/profile on first run — this touches your account)"
 rm -rf "${ARCHIVE}"
@@ -24,7 +29,8 @@ xcodebuild archive \
   -scheme "${SCHEME}" \
   -destination 'generic/platform=iOS' \
   -archivePath "${ARCHIVE}" \
-  -allowProvisioningUpdates
+  -allowProvisioningUpdates \
+  CURRENT_PROJECT_VERSION="${BUILD_NUMBER}"
 
 echo "==> Opening the archive in the Xcode Organizer"
 open "${ARCHIVE}"
