@@ -24,11 +24,11 @@ xcodebuild archive \
   -project MorseTrainerApp.xcodeproj \
   -scheme MorseTrainerApp-iOS \
   -destination 'generic/platform=iOS' \
-  -archivePath build/MorseTrainer.xcarchive \
+  -archivePath build/DahVinci.xcarchive \
   -allowProvisioningUpdates
 
 xcodebuild -exportArchive \
-  -archivePath build/MorseTrainer.xcarchive \
+  -archivePath build/DahVinci.xcarchive \
   -exportOptionsPlist docs/app-store/ExportOptions.plist \
   -exportPath build/export \
   -allowProvisioningUpdates

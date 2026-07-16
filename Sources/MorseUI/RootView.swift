@@ -62,7 +62,7 @@ public struct RootView: View {
                 Label(destination.title, systemImage: destination.icon)
                     .tag(destination)
             }
-            .navigationTitle("Morse Trainer")
+            .navigationTitle("Dah Vinci")
         } detail: {
             NavigationStack {
                 if let selection {

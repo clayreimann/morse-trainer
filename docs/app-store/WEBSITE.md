@@ -1,7 +1,7 @@
 # Website release coordination
 
 The public site is maintained separately in
-[`clayreimann/dah-vinci-site`](https://github.com/clayreimann/dah-vinci-site).
+[`clayreimann/dah-vinci-marketing-site`](https://github.com/clayreimann/dah-vinci-marketing-site).
 
 Stable App Store URLs:
 

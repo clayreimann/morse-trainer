@@ -1,7 +1,7 @@
 # Privacy Policy — Dah Vinci
 
 The canonical, publishable privacy policy is maintained in the
-[`dah-vinci-site`](https://github.com/clayreimann/dah-vinci-site) repository and
+[`dah-vinci-marketing-site`](https://github.com/clayreimann/dah-vinci-marketing-site) repository and
 served at <https://dahvinci.madtown.cloud/privacy>.
 
 Any app change affecting data collection, storage, transmission, tracking, or
