@@ -1,6 +1,9 @@
 # Superpowers brainstorm scratch (mockups)
 .superpowers/
 
+# Isolated implementation worktrees
+.worktrees/
+
 # macOS
 .DS_Store
 
