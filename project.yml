@@ -7,11 +7,20 @@ options:
 packages:
   MorseTrainer:
     path: .
+settingGroups:
+  iOS:
+    INFOPLIST_KEY_UILaunchStoryboardName: LaunchScreen
+  macOS: {}
 targets:
   MorseTrainerApp:
     type: application
     platform: [macOS, iOS]
-    sources: [App]
+    sources:
+      - path: App
+        excludes:
+          - LaunchScreen.storyboard
+      - path: App/LaunchScreen.storyboard
+        destinationFilters: [iOS]
     # Pulls in local (gitignored) signing settings so `xcodegen generate` never
     # wipes your Xcode team config. See Config.xcconfig / Signing.xcconfig.
     configFiles:
@@ -21,6 +30,8 @@ targets:
       - package: MorseTrainer
         product: MorseUI
     settings:
+      groups:
+        - ${platform}
       base:
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: "Dah Vinci"
