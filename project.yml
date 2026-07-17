@@ -1,0 +1,73 @@
+name: MorseTrainerApp
+options:
+  bundleIdPrefix: cloud.madtown.morse
+  deploymentTarget:
+    macOS: "14.0"
+    iOS: "17.0"
+packages:
+  MorseTrainer:
+    path: .
+settingGroups:
+  iOS:
+    INFOPLIST_KEY_UILaunchStoryboardName: LaunchScreen
+  macOS: {}
+targets:
+  MorseTrainerApp:
+    type: application
+    platform: [macOS, iOS]
+    sources:
+      - path: App
+        excludes:
+          - LaunchScreen.storyboard
+      - path: App/LaunchScreen.storyboard
+        destinationFilters: [iOS]
+    # Pulls in local (gitignored) signing settings so `xcodegen generate` never
+    # wipes your Xcode team config. See Config.xcconfig / Signing.xcconfig.
+    configFiles:
+      Debug: Config.xcconfig
+      Release: Config.xcconfig
+    dependencies:
+      - package: MorseTrainer
+        product: MorseUI
+    settings:
+      groups:
+        - ${platform}
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: "Dah Vinci"
+        # Generates an empty UILaunchScreen in the Info.plist so iOS launches at
+        # native resolution instead of the letterboxed compatibility mode.
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        # iPhone is portrait-only; iPad requires all four orientations
+        # (multitasking). Missing the iPad set is an App Store upload rejection.
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: "UIInterfaceOrientationPortrait"
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        # App Store: declare no non-exempt encryption (avoids the per-submission
+        # prompt) and set a store category.
+        INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.education
+        PRODUCT_BUNDLE_IDENTIFIER: cloud.madtown.morse.app
+        MARKETING_VERSION: "1.0"
+        CURRENT_PROJECT_VERSION: "1"
+schemes:
+  MorseTrainerApp:
+    build:
+      targets:
+        MorseTrainerApp_macOS: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+    archive:
+      config: Release
+  MorseTrainerApp-iOS:
+    build:
+      targets:
+        MorseTrainerApp_iOS: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+    archive:
+      config: Release
