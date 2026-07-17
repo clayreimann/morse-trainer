@@ -1,6 +1,6 @@
 # Dah Vinci iOS Launch Screen Design
 
-**Date:** 2026-07-16  
+**Date:** 2026-07-16
 **Status:** Approved visual direction
 
 ## Goal
