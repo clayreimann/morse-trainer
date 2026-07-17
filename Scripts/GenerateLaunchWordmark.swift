@@ -220,13 +220,20 @@ precondition(vinciCode == "...- .. -. -.-. ..")
 let outputPath = CommandLine.arguments.dropFirst().first
     ?? "App/Assets.xcassets/LaunchWordmark.imageset/LaunchWordmark.pdf"
 let outputURL = URL(fileURLWithPath: outputPath)
+let outputDirectoryURL = outputURL.deletingLastPathComponent()
 try FileManager.default.createDirectory(
-    at: outputURL.deletingLastPathComponent(),
+    at: outputDirectoryURL,
     withIntermediateDirectories: true
 )
+let temporaryURL = outputDirectoryURL.appendingPathComponent(
+    ".\(outputURL.lastPathComponent).\(UUID().uuidString).tmp"
+)
+defer {
+    try? FileManager.default.removeItem(at: temporaryURL)
+}
 
 var mediaBox = CGRect(origin: .zero, size: canvasSize)
-guard let consumer = CGDataConsumer(url: outputURL as CFURL),
+guard let consumer = CGDataConsumer(url: temporaryURL as CFURL),
       let context = CGContext(
         consumer: consumer,
         mediaBox: &mediaBox,
@@ -242,6 +249,12 @@ drawWord("Vinci", centeredIn: CGRect(x: 8, y: 85, width: 304, height: 72), conte
 drawMorse(vinciCode, centerY: 55, context: context)
 context.endPDFPage()
 context.closePDF()
-try normalizePDFMetadata(at: outputURL)
+try normalizePDFMetadata(at: temporaryURL)
+
+if FileManager.default.fileExists(atPath: outputURL.path) {
+    _ = try FileManager.default.replaceItemAt(outputURL, withItemAt: temporaryURL)
+} else {
+    try FileManager.default.moveItem(at: temporaryURL, to: outputURL)
+}
 
 print("Generated \(outputPath)")

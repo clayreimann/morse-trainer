@@ -26,9 +26,9 @@
                         <viewLayoutGuide key="safeArea" id="launch-safe-area"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <constraints>
-                            <constraint firstItem="launch-wordmark" firstAttribute="centerX" secondItem="launch-view" secondAttribute="centerX" id="wordmark-center-x"/>
-                            <constraint firstItem="launch-wordmark" firstAttribute="centerY" secondItem="launch-view" secondAttribute="centerY" id="wordmark-center-y"/>
-                            <constraint firstItem="launch-wordmark" firstAttribute="width" secondItem="launch-safe-area" secondAttribute="width" multiplier="0.82" priority="750" id="wordmark-fluid-width"/>
+                            <constraint firstItem="launch-wordmark" firstAttribute="centerX" secondItem="launch-safe-area" secondAttribute="centerX" id="wordmark-center-x"/>
+                            <constraint firstItem="launch-wordmark" firstAttribute="centerY" secondItem="launch-safe-area" secondAttribute="centerY" id="wordmark-center-y"/>
+                            <constraint firstItem="launch-wordmark" firstAttribute="width" secondItem="launch-safe-area" secondAttribute="width" multiplier="0.82" priority="751" id="wordmark-fluid-width"/>
                             <constraint firstItem="launch-wordmark" firstAttribute="width" relation="lessThanOrEqual" constant="360" id="wordmark-max-width"/>
                         </constraints>
                     </view>
